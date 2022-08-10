@@ -1,7 +1,4 @@
-﻿using Flunt.Notifications;
-using Microsoft.AspNetCore.Identity;
-
-namespace IWantApp.Endpoints.Categories;
+﻿namespace IWantApp.Endpoints.Categories;
 
 public static class ProblemDetailsExtensions
 {
