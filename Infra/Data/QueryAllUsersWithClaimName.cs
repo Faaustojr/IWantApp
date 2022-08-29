@@ -14,14 +14,14 @@ public class QueryAllUsersWithClaimName
         var db = new SqlConnection(configuration["ConnectionString:IWantDb"]);
         var query =
             @"select Email, ClaimValue as Name 
-            from AspNetUsers u inner 
+            from AspNetUsers u inner
             join AspNetUserClaims c
-            on u.id = c.UserId and claimtype = 'Name' 
+            on u.id = c.UserId and claimtype = 'Name'
             order by name
-            OFFSET (@page - 1) * @rows ROWS FETCH NEXT @rows ROWS ONLY";
+            OFFSET (@page -1 ) * @rows ROWS FETCH NEXT @rows ROWS ONLY";
         return await db.QueryAsync<EmployeeResponse>(
             query,
             new { page, rows }
-      );
+        );
     }
 }

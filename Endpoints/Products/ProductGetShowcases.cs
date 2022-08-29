@@ -1,6 +1,6 @@
 ﻿namespace IWantApp.Endpoints.Products;
 
-public class ProductGetShowcases
+public class ProductGetShowcase
 {
     public static string Template => "/products/showcase";
     public static string[] Methods => new string[] { HttpMethod.Get.ToString() };
@@ -11,8 +11,7 @@ public class ProductGetShowcases
     {
         if (row > 10)
             return Results.Problem(title: "Row with max 10", statusCode: 400);
-
-
+        
         var queryBase = context.Products.AsNoTracking().Include(p => p.Category)
             .Where(p => p.HasStock && p.Category.Active);
 
@@ -23,8 +22,7 @@ public class ProductGetShowcases
         else
             return Results.Problem(title: "Order only by price or name", statusCode: 400);
 
-        var queryFilter = queryBase.Skip((page -1) * row).Take(row);
-        
+        var queryFilter = queryBase.Skip((page - 1) * row).Take(row);
 
         var products = queryFilter.ToList();
 

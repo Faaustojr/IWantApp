@@ -1,25 +1,23 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-
-namespace IWantApp.Endpoints.Security;
+﻿namespace IWantApp.Endpoints.Security;
 
 public class TokenPost
 {
     public static string Template => "/token";
     public static string[] Methods => new string[] { HttpMethod.Post.ToString() };
-    public static Delegate Handle => Action;
+    public static Delegate Handle => Action; 
 
     [AllowAnonymous]
     public static async Task<IResult> Action(
-        LoginRequest loginRequest,
-        IConfiguration configuration,
-        UserManager<IdentityUser> userManager,
+        LoginRequest loginRequest, 
+        IConfiguration configuration, 
+        UserManager<IdentityUser> userManager, 
         ILogger<TokenPost> log,
         IWebHostEnvironment environment)
     {
         log.LogInformation("Getting token");
 
         var user = await userManager.FindByEmailAsync(loginRequest.Email);
-        if (user == null)
+        if(user == null)
             Results.BadRequest();
         if (!await userManager.CheckPasswordAsync(user, loginRequest.Password))
             Results.BadRequest();
@@ -41,7 +39,7 @@ public class TokenPost
                     new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
             Audience = configuration["JwtBearerTokenSettings:Audience"],
             Issuer = configuration["JwtBearerTokenSettings:Issuer"],
-            Expires = environment.IsDevelopment() || environment.IsStaging() ?
+            Expires = environment.IsDevelopment() || environment.IsStaging() ? 
                 DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddMinutes(2)
         };
 

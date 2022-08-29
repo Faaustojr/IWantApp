@@ -18,7 +18,6 @@ public class EmployeePost
             new Claim("Name", employeeRequest.Name),
             new Claim("CreatedBy", userId),
         };
-
         (IdentityResult identity, string userId) result =
             await userCreator.Create(employeeRequest.Email, employeeRequest.Password, userClaims);
 

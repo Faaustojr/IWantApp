@@ -1,4 +1,7 @@
-﻿namespace IWantApp.Endpoints.Clients;
+﻿using IWantApp.Domain.Users;
+
+namespace IWantApp.Endpoints.Clients;
+
 public class ClientGet
 {
     public static string Template => "/clients";

@@ -22,10 +22,10 @@ public class Category : Entity
     private void Validate()
     {
         var contract = new Contract<Category>()
-             .IsNotNullOrEmpty(Name, "Name")
-             .IsGreaterOrEqualsThan(Name, 3, "Name")
-             .IsNotNullOrEmpty(CreatedBy, "CreatedBy")
-             .IsNotNullOrEmpty(EditedBy, "EditedBy");
+            .IsNotNullOrEmpty(Name, "Name")
+            .IsGreaterOrEqualsThan(Name, 3, "Name")
+            .IsNotNullOrEmpty(CreatedBy, "CreatedBy")
+            .IsNotNullOrEmpty(EditedBy, "EditedBy");
         AddNotifications(contract);
     }
 
@@ -38,5 +38,4 @@ public class Category : Entity
 
         Validate();
     }
-
 }

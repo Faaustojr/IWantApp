@@ -1,4 +1,7 @@
-﻿namespace IWantApp.Endpoints.Clients;
+﻿using IWantApp.Domain.Users;
+
+namespace IWantApp.Endpoints.Clients;
+
 public class ClientPost
 {
     public static string Template => "/clients";
@@ -13,10 +16,9 @@ public class ClientPost
             new Claim("Cpf", clientRequest.Cpf),
             new Claim("Name", clientRequest.Name)
         };
-
         (IdentityResult identity, string userId) result = 
             await userCreator.Create(clientRequest.Email, clientRequest.Password, userClaims);
-
+        
         if (!result.identity.Succeeded)
             return Results.ValidationProblem(result.identity.Errors.ConvertToProblemDetails());
 

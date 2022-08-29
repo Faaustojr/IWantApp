@@ -1,17 +1,11 @@
-var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseSerilog((context, configuration) =>
-{
-    configuration
-    .WriteTo.Console()
-    .WriteTo.MSSqlServer(
-        context.Configuration["ConnectionString:IWantDb"],
-        sinkOptions: new MSSqlServerSinkOptions()
-        {
-            AutoCreateSqlTable = true,
-            TableName = "LogAPI"
-        });
-});
+using IWantApp.Domain.Users;
+using IWantApp.Endpoints.Clients;
+using IWantApp.Endpoints.Products;
+using Microsoft.AspNetCore.Diagnostics;
+using Serilog;
+using Serilog.Sinks.MSSqlServer;
 
+var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSqlServer<ApplicationDbContext>(
     builder.Configuration["ConnectionString:IWantDb"]);
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -19,19 +13,20 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireDigit = false;
     options.Password.RequireUppercase = false;
-    options.Password.RequiredLength = 3;
     options.Password.RequireLowercase = false;
+    options.Password.RequiredLength = 3;
 }).AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
-    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-    .RequireAuthenticatedUser()
-    .Build();
-    options.AddPolicy("EmployeePolicy", p => 
+      .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+      .RequireAuthenticatedUser()
+      .Build();
+    options.AddPolicy("EmployeePolicy", p =>
         p.RequireAuthenticatedUser().RequireClaim("EmployeeCode"));
-
+    options.AddPolicy("CpfPolicy", p =>
+        p.RequireAuthenticatedUser().RequireClaim("Cpf"));
 });
 builder.Services.AddAuthentication(x =>
 {
@@ -43,12 +38,14 @@ builder.Services.AddAuthentication(x =>
     {
         ValidateActor = true,
         ValidateAudience = true,
-        ValidateLifetime = true,
+        ValidateIssuer = true,
+        ValidateLifetime = true,    
         ValidateIssuerSigningKey = true,
         ClockSkew = TimeSpan.Zero,
         ValidIssuer = builder.Configuration["JwtBearerTokenSettings:Issuer"],
         ValidAudience = builder.Configuration["JwtBearerTokenSettings:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtBearerTokenSettings:SecretKey"]))
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["JwtBearerTokenSettings:SecretKey"]))
     };
 });
 
@@ -57,6 +54,18 @@ builder.Services.AddScoped<UserCreator>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.WebHost.UseSerilog((context, configuration) =>
+{
+    configuration
+        .WriteTo.Console()
+        .WriteTo.MSSqlServer(
+            context.Configuration["ConnectionString:IWantDb"],
+              sinkOptions: new MSSqlServerSinkOptions()
+              {
+                  AutoCreateSqlTable = true,
+                  TableName = "LogAPI"
+              });
+});
 
 var app = builder.Build();
 app.UseAuthentication();
@@ -78,26 +87,27 @@ app.MapMethods(EmployeeGetAll.Template, EmployeeGetAll.Methods, EmployeeGetAll.H
 app.MapMethods(TokenPost.Template, TokenPost.Methods, TokenPost.Handle);
 app.MapMethods(ProductPost.Template, ProductPost.Methods, ProductPost.Handle);
 app.MapMethods(ProductGetAll.Template, ProductGetAll.Methods, ProductGetAll.Handle);
-app.MapMethods(ProductGetShowcases.Template, ProductGetShowcases.Methods, ProductGetShowcases.Handle);
+app.MapMethods(ProductGetShowcase.Template, ProductGetShowcase.Methods, ProductGetShowcase.Handle);
 app.MapMethods(ClientPost.Template, ClientPost.Methods, ClientPost.Handle);
 app.MapMethods(ClientGet.Template, ClientGet.Methods, ClientGet.Handle);
+app.MapMethods(OrderPost.Template, OrderPost.Methods, OrderPost.Handle);
 
 app.UseExceptionHandler("/error");
-app.Map("/error", (HttpContext http) =>
-{
+app.Map("/error", (HttpContext http) => {
 
     var error = http.Features?.Get<IExceptionHandlerFeature>()?.Error;
 
     if(error != null)
     {
-        if (error is SqlException)
+        if(error is SqlException)
             return Results.Problem(title: "Database out", statusCode: 500);
-        else if (error is BadHttpRequestException)
-            return Results.Problem(title: "Error to convert data to other type. See all information sent.", statusCode: 500);
+        else if(error is BadHttpRequestException)
+            return Results.Problem(title: "Error to convert data to other type. See all the information sent", statusCode: 500);
     }
 
-    return Results.Problem(title: "An error ocurred.", statusCode: 500);
+    return Results.Problem(title: "An error ocurred", statusCode: 500);
 });
+
 
 app.Run();
 

@@ -1,16 +1,18 @@
 ﻿using Flunt.Validations;
+using IWantApp.Domain.Orders;
 
 namespace IWantApp.Domain.Products;
 
 public class Product : Entity
 {
-    public string Name { get; set; }
-    public Guid CategoryId { get; set; }
-    public Category Category { get; set; }
-    public string Description { get; set; }
-    public bool HasStock { get; set; }
-    public bool Active { get; set; } = true;
+    public string Name { get; private set; }
+    public Guid CategoryId { get; private set; }
+    public Category Category { get; private set; }
+    public string Description { get; private set; }
+    public bool HasStock { get; private set; }
+    public bool Active { get; private set; } = true;
     public decimal Price { get; private set; }
+    public ICollection<Order> Orders { get; private set; }
 
     private Product() { }
 
@@ -29,13 +31,12 @@ public class Product : Entity
 
         Validate();
     }
-
     private void Validate()
     {
         var contract = new Contract<Product>()
             .IsNotNullOrEmpty(Name, "Name")
             .IsGreaterOrEqualsThan(Name, 3, "Name")
-            .IsNotNull(Category, "Category")
+            .IsNotNull(Category, "Category", "Category not found")
             .IsNotNullOrEmpty(Description, "Description")
             .IsGreaterOrEqualsThan(Description, 3, "Description")
             .IsGreaterOrEqualsThan(Price, 1, "Price")
