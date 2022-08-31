@@ -1,1 +1,1 @@
-# Application in .NET6 and C#10.
+# Application in .NET CORE 6 and C#10.
